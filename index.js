@@ -288,8 +288,7 @@ class TagInput<T> extends React.PureComponent<Props<T>, State> {
             <View style={styles.tagInputContainer}>
 						{tags}
 						<View style={[
-							styles.textInputContainer,
-							{ width: '100%' },
+							styles.textInputContainer
 						]}>
 							<TextInput
 								ref={this.tagInputRef}
@@ -471,6 +470,7 @@ const styles = StyleSheet.create({
 		padding: 0,
 	},
 	textInputContainer: {
+		width: '100%',
 		height: 36,
 	},
 	tag: {
