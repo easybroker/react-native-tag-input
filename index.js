@@ -460,7 +460,7 @@ const styles = StyleSheet.create({
 	},
 	tagInputContainer: {
 		flex: 1,
-		flexDirection: 'row',
+		alignItems: 'flex-start',
 		flexWrap: 'wrap',
 	},
 	textInput: {
