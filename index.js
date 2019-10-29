@@ -275,7 +275,7 @@ class TagInput<T> extends React.PureComponent<Props<T>, State> {
 				style={styles.container}
 				onLayout={this.measureWrapper}
 			>
-				<View style={[styles.wrapper, { height: this.state.wrapperHeight }]}>
+				<View style={[styles.wrapper]}>
 					<ScrollView
 						ref={this.scrollViewRef}
 						style={styles.tagInputContainerScroll}
@@ -450,6 +450,7 @@ const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
 		flexDirection: 'row',
+		height: '100%',
 		marginTop: 3,
 		marginBottom: 2,
 		alignItems: 'flex-start',
