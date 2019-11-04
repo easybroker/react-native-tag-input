@@ -25,76 +25,76 @@ const windowWidth = Dimensions.get('window').width;
 type KeyboardShouldPersistTapsProps =
 	"always" | "never" | "handled" | false | true;
 type RequiredProps<T> = {
-  /**
-   * An array of tags, which can be any type, as long as labelExtractor below
-   * can extract a string from it
-   */
+	/**
+	 * An array of tags, which can be any type, as long as labelExtractor below
+	 * can extract a string from it
+	 */
 	value: $ReadOnlyArray<T>,
-  /**
-   * A handler to be called when array of tags change. The parent should update
-   * the value prop when this is called if they want to enable removal of tags
-   */
+	/**
+	 * A handler to be called when array of tags change. The parent should update
+	 * the value prop when this is called if they want to enable removal of tags
+	 */
 	onChange: (items: $ReadOnlyArray<T>) => void,
-  /**
-   * Function to extract string value for label from item
-   */
+	/**
+	 * Function to extract string value for label from item
+	 */
 	labelExtractor: (tagData: T) => string | React.Element<any>,
-  /**
-   * The text currently being displayed in the TextInput following the list of
-   * tags
-   */
+	/**
+	 * The text currently being displayed in the TextInput following the list of
+	 * tags
+	 */
 	text: string,
-  /**
-   * This callback gets called when the user types in the TextInput. The parent
-   * should update the text prop when this is called if they want to enable
-   * input. This is also where any parsing to detect new tags should occur
-   */
+	/**
+	 * This callback gets called when the user types in the TextInput. The parent
+	 * should update the text prop when this is called if they want to enable
+	 * input. This is also where any parsing to detect new tags should occur
+	 */
 	onChangeText: (text: string) => void,
 };
 type OptionalProps = {
-  /**
-   * If false, text input is not editable and existing tags cannot be removed.
-   */
+	/**
+	 * If false, text input is not editable and existing tags cannot be removed.
+	 */
 	editable: boolean,
-  /**
-   * Background color of tags
-   */
+	/**
+	 * Background color of tags
+	 */
 	tagColor: string,
-  /**
-   * Text color of tags
-   */
+	/**
+	 * Text color of tags
+	 */
 	tagTextColor: string,
-  /**
-   * Styling override for container surrounding tag text
-   */
+	/**
+	 * Styling override for container surrounding tag text
+	 */
 	tagContainerStyle?: StyleObj,
-  /**
-   * Styling override for tag's text component
-   */
+	/**
+	 * Styling override for tag's text component
+	 */
 	tagTextStyle?: StyleObj,
-  /**
-   * Width override for text input's default width when it's empty and showing placeholder
-   */
+	/**
+	 * Width override for text input's default width when it's empty and showing placeholder
+	 */
 	inputDefaultWidth: number,
-  /**
-   * Color of text input
-   */
+	/**
+	 * Color of text input
+	 */
 	inputColor: string,
-  /**
-   * Any misc. TextInput props (autoFocus, placeholder, returnKeyType, etc.)
-   */
+	/**
+	 * Any misc. TextInput props (autoFocus, placeholder, returnKeyType, etc.)
+	 */
 	inputProps?: $PropertyType<TextInput, 'props'>,
-  /**
-   * Max height of the tag input on screen (will scroll if max height reached)
-   */
+	/**
+	 * Max height of the tag input on screen (will scroll if max height reached)
+	 */
 	maxHeight: number,
-  /**
-   * Callback that gets passed the new component height when it changes
-   */
+	/**
+	 * Callback that gets passed the new component height when it changes
+	 */
 	onHeightChange?: (height: number) => void,
-  /**
-   * Any ScrollView props (horizontal, showsHorizontalScrollIndicator, etc.)
-  */
+	/**
+	 * Any ScrollView props (horizontal, showsHorizontalScrollIndicator, etc.)
+	 */
 	scrollViewProps?: $PropertyType<ScrollView, 'props'>,
 };
 type Props<T> = RequiredProps<T> & OptionalProps;
@@ -217,9 +217,13 @@ class TagInput<T> extends React.PureComponent<Props<T>, State> {
 		if (this.props.text !== '' || event.nativeEvent.key !== 'Backspace') {
 			return;
 		}
-		const tags = [...this.props.value];
+		let tags = Array.from(this.props.value);
 		tags.pop();
+		if(Platform.OS === 'ios') {
+			tags.pop();
+		}
 		this.props.onChange(tags);
+		this.forceUpdate();
 		this.scrollToEnd();
 		this.focus();
 	}
@@ -252,11 +256,12 @@ class TagInput<T> extends React.PureComponent<Props<T>, State> {
 	}
 
 	render() {
-		const tags = this.props.value.map((tag, index) => (
+		let tags = this.props.value.map((tag, index) => (
 			<Tag
 				index={index}
 				label={this.props.labelExtractor(tag)}
 				isLastTag={this.props.value.length === index + 1}
+				isGhostLabel={tag.email === this.props.ghostLabel}
 				onLayoutLastTag={this.onLayoutLastTag}
 				removeIndex={this.removeIndex}
 				tagColor={this.props.tagColor}
@@ -268,7 +273,6 @@ class TagInput<T> extends React.PureComponent<Props<T>, State> {
 				onPress={this.props.onPress || this.extractTextFromTag(index, tag)}
 			/>
 		));
-
 		return (
 			<TouchableWithoutFeedback
 				onPress={this.focus}
@@ -282,39 +286,39 @@ class TagInput<T> extends React.PureComponent<Props<T>, State> {
 						onContentSizeChange={this.onScrollViewContentSizeChange}
 						keyboardShouldPersistTaps={
 							("handled": KeyboardShouldPersistTapsProps)
-}
-            {...this.props.scrollViewProps}
+						}
+						{...this.props.scrollViewProps}
 					>
-            <View style={styles.tagInputContainer}>
-						{tags}
-						<View style={[
-							styles.textInputContainer
-						]}>
-							<TextInput
-								ref={this.tagInputRef}
-								blurOnSubmit={false}
-								onKeyPress={this.onKeyPress}
-								value={this.props.text}
-								style={[styles.textInput, {
-									color: this.props.inputColor,
-								}]}
-								onBlur={Platform.OS === "ios" ? this.onBlur : undefined}
-								onChangeText={this.props.onChangeText}
-								autoCapitalize="none"
-								autoCorrect={false}
-								placeholder="Start typing"
-								returnKeyType="done"
-								keyboardType="default"
-								editable={this.props.editable}
-								underlineColorAndroid="rgba(0,0,0,0)"
-								{...this.props.inputProps}
-							/>
+						<View style={styles.tagInputContainer}>
+							{tags}
+							<View style={[
+								styles.textInputContainer
+							]}>
+								<TextInput
+									ref={this.tagInputRef}
+									blurOnSubmit={false}
+									onKeyPress={this.onKeyPress}
+									value={this.props.text}
+									style={[styles.textInput, {
+										color: this.props.inputColor,
+									}]}
+									onBlur={Platform.OS === "ios" ? this.onBlur : undefined}
+									onChangeText={this.props.onChangeText}
+									autoCapitalize="none"
+									autoCorrect={false}
+									placeholder="Start typing"
+									returnKeyType="done"
+									keyboardType="default"
+									editable={this.props.editable}
+									underlineColorAndroid="rgba(0,0,0,0)"
+									{...this.props.inputProps}
+								/>
+							</View>
 						</View>
-					</View>
-          </ScrollView>
-        </View>
-      </TouchableWithoutFeedback >
-    )
+					</ScrollView>
+				</View>
+			</TouchableWithoutFeedback >
+		)
 	}
 
 	tagInputRef = (tagInput: ?React.ElementRef<typeof TextInput>) => {
@@ -424,6 +428,7 @@ class Tag extends React.PureComponent<TagProps> {
 					styles.tag,
 					{ backgroundColor: this.props.tagColor },
 					this.props.tagContainerStyle,
+					this.props.isGhostLabel ? styles.hiddenTag : null
 				]}
 			>
 				{tagLabel}
@@ -486,6 +491,18 @@ const styles = StyleSheet.create({
 		padding: 0,
 		margin: 0,
 	},
+	hiddenTag: {
+		height: 0,
+		width: 0,
+		marginTop: 0,
+		marginBottom: 0,
+		marginLeft: 0,
+		marginRight: 0,
+		paddingTop: 0,
+		paddingBottom: 0,
+		paddingLeft: 0,
+		paddingRight: 0
+	}
 });
 
 export default TagInput;
