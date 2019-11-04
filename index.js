@@ -219,11 +219,10 @@ class TagInput<T> extends React.PureComponent<Props<T>, State> {
 		}
 		let tags = Array.from(this.props.value);
 		tags.pop();
-		if(Platform.OS === 'ios') {
+		if (Platform.OS === 'ios') {
 			tags.pop();
 		}
 		this.props.onChange(tags);
-		this.forceUpdate();
 		this.scrollToEnd();
 		this.focus();
 	}
